@@ -1,0 +1,13 @@
+#!/bin/bash
+
+./start-stop-restart-tunnel -e 9
+./start-stop-restart-tunnel -e 10
+./start-stop-restart-tunnel -e 11
+./start-stop-restart-tunnel -e 12
+./start-stop-restart-tunnel -e 13
+./start-stop-restart-tunnel -e 14
+./start-stop-restart-tunnel -e 15
+./start-stop-restart-tunnel -e 16
+./start-stop-restart-tunnel -e 17
+./start-stop-restart-tunnel -e 18
+echo "All stopped"

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+nb_concurrent_processes=28
+j=0
+while read LINE; do
+  i=$[i + 1]
+  echo -n "$LINE:" >> OUT7.$i &
+  curl --proxy 127.0.0.1:5560 --connect-timeout 70 --max-time 70 -s -o /dev/null -w "%{http_code}\n" "$LINE" >> OUT7.$i &
+  ((++j == nb_concurrent_processes)) && { j=0; wait; }
+done < xag

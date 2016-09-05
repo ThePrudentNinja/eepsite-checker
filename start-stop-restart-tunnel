@@ -1,0 +1,54 @@
+#!/bin/bash
+#
+# This script can be used to start, stop, and restart an I2P tunnel from a terminal
+#
+# USAGE: ./scriptname -variable tunnelnumber
+# EXAMPLE: ./scriptname -b 3
+#
+# Variables are: -b to begin/start a tunnel, -e to end/stop a tunnel, -r to restart a tunnel.
+# Find tunnel number at: http://127.0.0.1:7657/i2ptunnel/
+#
+# This is a rough script by SGLG
+# License: Public Domain
+
+
+# A POSIX variable
+OPTIND=1         # Reset in case getopts has been used previously in the shell.
+
+# Initialize our own variables:
+output_file=""
+verbose=0
+
+if [ -z "$1" ]
+then
+   echo "You need a variable and tunnel number"
+   echo "Use -h to find out more"
+   exit 1
+fi
+
+while getopts "h?ber:" opt; do
+    case "$opt" in
+    h|\?)
+        echo "USE: ./scriptname -variable tunnelnumber"
+        echo "Example: ./scriptname -b 3"
+        echo "will start tunnel three"
+        echo ""
+        echo "use -b to start a tunnel"
+        echo "use -e to stop a tunnel"
+        echo "use -r to restart a tunnel"
+        exit 0
+        ;;
+    b)
+echo "$2"
+        curl http://127.0.0.1:7657/i2ptunnel/ 2>&1 | grep "&amp;action=start&amp;tunnel=$2" | sed -r 's/^.{63}//' | sed 's/.\{12\}$//' | sed 's/\&amp;/\&/g' | xargs -I% curl "http://127.0.0.1:7657/i2ptunnel/"% &> /dev/null
+        ;;
+    e)
+        curl http://127.0.0.1:7657/i2ptunnel/ 2>&1 | grep "&amp;action=stop&amp;tunnel=$2" | sed -r 's/^.{62}//' | sed 's/.\{11\}$//' | sed 's/\&amp;/\&/g' | xargs -I% curl -v --silent "http://127.0.0.1:7657/i2ptunnel/%" &> /dev/null
+        ;;
+    r)
+        curl http://127.0.0.1:7657/i2ptunnel/ 2>&1 | grep "&amp;action=stop&amp;tunnel=$2" | sed -r 's/^.{62}//' | sed 's/.\{11\}$//' | sed 's/\&amp;/\&/g' | xargs -I% curl -v --silent "http://127.0.0.1:7657/i2ptunnel/%" &> /dev/null
+        curl http://127.0.0.1:7657/i2ptunnel/ 2>&1 | grep "&amp;action=start&amp;tunnel=$2" | sed -r 's/^.{63}//' | sed 's/.\{12\}$//' | sed 's/\&amp;/\&/g' | xargs -I% curl "http://127.0.0.1:7657/i2ptunnel/"% &> /dev/null
+        ;;
+    esac
+done
+

@@ -1,0 +1,29 @@
+This script set is as-is. It is licensed under the public domain. Do with it what you want, I don't care. I suggest if anyone does modify it or improve it, to let me know. I can be found on the I2P IRC server as SGLG or you can send me an email via sglg@mail.i2p.
+
+This readme has been done quickly due to someone wanting to obtain this script. It is rough, but should get the point across.
+
+This script set isn't pretty, but it gets the job done. Improvements welcome.
+
+Needed deps: bash, curl, cut, sed, cat, sort, uniq, date, and grep.
+
+MAKE SURE I2P (the java version) IS RUNNING. i2pd is currently not supported due to differences in addressbook structure and lack of multiple http proxy tunnel ability.
+
+chmod +x all the scripts and chown all the scripts.
+
+Create 11 total http proxy tunnels. You can reuse the http proxy tunnel at 4444. Each worker script has a number at the end, this shows the port. If you don't create tunnels for each port and decide to use something else, edit the worker script and rename it for reference.
+
+run ./script to start the process.
+run ./killthemall to kill everything (in case serious problems come up and everything needs to be killed)
+
+Known problems:
+* Uses a lot of individual scripts. Could be improved. The reasoning for the number of scripts is to spread the workload across multiple http proxy tunnels since each can only handle around 25-28 simultaneous checks before things get too congested and every eepsite times out.
+* hosts2.txt file gets deleted by default. If you would like to keep it for any reason, comment out the "rm scripts/hosts2.txt" line in the script called "script"
+* This script currently needs a total of 11 http proxy tunnels.
+
+Other notes:
+* The scripts "start-for-eepsites", "stop-start-restart-tunnel", and "stop-for-eepsites" are scripts that can be used to help start/stop/restart the many tunnels. You will NEED to edit them to match your setup unless your setup is exactly like mine.
+* 111-grand-list is the finished text list. finishedlist-clickable.html is the clickable finished list. They may need tweaking.
+* I may have missed something. If something doesn't work as expected, investigate it and fix if needed. The biggest issues I've ran into is formatting of the finished lists and hitting bandwidth limit in I2P. I somewhat solved this by simply toning everything down so as not to flood the router too much.
+* This is written in bash scripting and uses external programs. There is little to no sanity checks or other checks. If it fails, it can fail rather wildly.
+* There may be formatting issues and/or other issues.
+* This checks if eepsites responds, if so, adds to list, when done, combine with old list, sort, and format. There is nothing in place to cover when previously alive eepsites are no longer alive. This needs to be worked on.

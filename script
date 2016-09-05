@@ -1,0 +1,145 @@
+#!/bin/bash
+
+# defines raw hosts.txt file
+hosts=hosts.txt
+
+# defines cleaned up hosts.txt file
+hosts2=hosts2.txt
+
+# Checking if I2P is up
+if [[ $(curl "http://127.0.0.1:7657/susidns/export?book=router" -s -o /dev/null -w "%{http_code}" | grep '200') = *200* ]]; then
+  echo "I2P is running.."
+else
+  echo "I2P not running, please start I2P first"
+  exit 0
+fi
+
+# Removing old hosts.txt if it exists
+rm hosts.txt
+
+# Getting the hosts.txt file
+curl -o hosts.txt "http://127.0.0.1:7657/susidns/export?book=router"
+
+# Double checking to make sure hosts.txt file is there.
+if [ ! -f hosts.txt ]; then
+    echo "hosts.txt not found!"
+    exit 0
+fi
+
+# Cleans up the hosts.txt file and puts it in hosts2.txt
+cut -d= -f1 $hosts > $hosts2
+sed -i '1,3d' $hosts2
+
+# Let's do this
+
+# Find number of lines in host file
+numlines=$(wc -l $hosts2 | sed "s/...........$//" -)
+
+# Find out roughly equal number of lines to split by
+# Currently figures out roughly 10 or 11 files.
+splitby=$(echo $(( $numlines / 10 )))
+
+# Split it into ten/eleven files
+split --lines=$splitby $hosts2
+
+# Begin the madness
+# If things go badly, use killall script to kill everything
+# The killall script doesn't clean up, you will have to do
+# that manually.
+#
+# Each script uses it's own tunnel. The script name reflects
+# the tunnel port. Adjust as needed. If you add more scripts,
+# you will need to update the above math to match. The $splitby
+# variable should be one number below the number of available
+# scripts and tunnels. For example, there are 11 scripts and
+# 11 tunnels by default but the $splitby variable uses 10. This
+# allows for overflow with the split command so no eepsites are missed.
+./tunnel4444 &
+sleep 5
+./tunnel5555 &
+sleep 5
+./tunnel5556 &
+sleep 5
+./tunnel5557 &
+sleep 5
+./tunnel5558 &
+sleep 5
+./tunnel5559 &
+sleep 5
+./tunnel5560 &
+sleep 5
+./tunnel5561 &
+sleep 5
+./tunnel5562 &
+sleep 5
+./tunnel5563 &
+sleep 5
+./tunnel5564 &
+
+echo "Waiting for all jobs to finish"
+wait
+
+# Combining everything
+cat OUT* > DONE
+rm OUT*
+
+# Deletes all eepsites from file that didn't respond with "200"
+sed -i '/200/!d' DONE
+
+# Removes the status codes from the file and removes DONE file
+cut -f1 -d":" DONE >> finishedlist.txt
+#rm DONE
+
+## Some cleanup and sorting
+# Remove old backup if exists, and creates new backup.
+rm 1111-grand-list.bak
+cp 1111-grand-list 1111-grand-list.bak
+
+# combine the old eepsite list with the new one
+mv 1111-grand-list 1finishedlist.txt
+sed -i '1,3d' 1finishedlist.txt
+cat *finishedlist.txt > grandtotal
+
+# sorts new list and removes duplicates
+sort grandtotal | uniq > 1111-grand-list
+
+# Some cleanup
+rm grandtotal
+rm *finishedlist.txt
+
+# optional html output for clickable links
+date=`date +%b-%d-%Y`
+rm finishedlist-clickable.html
+sed '1,3d' 1111-grand-list | sed 's|^|http://|' - >> sortedhtml.txt
+echo "<html><body>" >> finishedlist-clickable.html
+echo "List updated: $date<BR>" >> finishedlist-clickable.html
+echo "For a recent list, please visit <a href="http://kplek3im5b4uad5qfi34tlfcrcu2pn2ph72gyood2zefygv36m4q.b32.i2p">http://kplek3im5b4uad5qfi34tlfcrcu2pn2ph72gyood2zefygv36m4q.b32.i2p</a><BR>" >> finishedlist-clickable.html
+echo "==================================<BR>" >> finishedlist-clickable.html
+awk '{printf "<a href=\"%s\">%s</a><br>", $0,$0}' sortedhtml.txt >> finishedlist-clickable.html
+echo "</body></html>" >> finishedlist-clickable.html
+
+# Some cleanup
+rm sortedhtml.txt
+
+# Add header to text list
+sed -i '1s/^/==================================\n/' 1111-grand-list
+sed -i "1iFor a recent list, please visit eepsitelist.i2p" 1111-grand-list
+sed -i "1s/^/List updated: $date\n/" 1111-grand-list
+
+# comment out the below if you want to keep the hosts2.txt file
+rm hosts2.txt
+
+# Some cleanup
+rm x*
+
+# Creates a list of new hosts for this run
+rm new-hosts-this-run
+grep -Fxvf 1111-grand-list.bak 1111-grand-list > new-hosts-this-run
+
+# copy to eepsite
+#rm /path/to/eepsite/finishedlist.txt
+#rm /path/to/eepsite/finished-clickable.html
+#cp 1111-grand-list /path/to/eepsite/finishedlist.txt
+#cp finishedlist-clickable.html /path/to/eepsite/finished-clickable.html
+
+echo "Done"

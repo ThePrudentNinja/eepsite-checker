@@ -1,0 +1,3 @@
+#!/bin/bash
+
+killall -9 tunnel4444 tunnel5555 tunnel5556 tunnel5557 tunnel5558 tunnel5559 tunnel5560 tunnel5561 tunnel5562 tunnel5563 tunnel5564
